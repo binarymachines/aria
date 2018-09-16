@@ -1,0 +1,40 @@
+version: "3.1"
+services:
+        
+        couchbase:
+                build:
+                        context: .
+                        dockerfile: conf/couchbase/Dockerfile
+                networks:
+                      - default 
+                ports:
+                      - 8091:8091
+                      - 8092:8092
+                      - 8093:8093
+                      - 8094:8094
+                      - 11210:11210
+                volumes:
+                      - ./container_volumes/couchbase_data:/opt/couchbase/var/lib/couchbase/data
+                      - ./scripts:/scripts
+                entrypoint:
+                      /opt/couchbase/cluster_init.sh
+
+        elasticsearch:
+                build:
+                        context: .
+                        dockerfile: conf/elasticsearch/Dockerfile
+                #volumes:
+                #      - ./container_volumes/elasticsearch:/bitnami/elasticsearch/data 
+                networks:
+                        - default
+                ports:
+                        - 19200:9200
+                        - 19100:9100
+                entrypoint: bash -c "cd /elasticsearch-head; npm run start"
+
+        start_dependencies:
+                image: dadarek/wait-for-dependencies
+                depends_on:                        
+                        - couchbase
+                command: couchbase:8091
+
